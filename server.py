@@ -3,8 +3,6 @@
 Usage:
   python server.py
 Then open http://127.0.0.1:5000
-import eventlet
-eventlet.monkey_patch()
 import threading
 import time
 import json
