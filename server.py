@@ -14,7 +14,7 @@ eventlet.monkey_patch()
 import time
 import os
 import queue
-from flask import Flask, render_template, request, redirect, url_for, Response
+from flask import Flask, render_template
 
 # ---- local imports ----
 from bot import BotController  # expects a log_queue and uses accounts.json
