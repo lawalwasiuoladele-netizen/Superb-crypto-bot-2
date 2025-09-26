@@ -3,6 +3,7 @@
 Usage:
   python server.py
 Then open http://127.0.0.1:5000
+
 import threading
 import time
 import json
