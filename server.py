@@ -96,3 +96,13 @@ if __name__ == "__main__":
     bot_ctrl.ensure_accounts_file()
     print(f"Starting Flask on 0.0.0.0:{APP_PORT}")
     app.run(host="0.0.0.0", port=APP_PORT, threaded=True)
+from flask import Flask, render_template
+
+app = Flask(__name__, template_folder="templates")
+
+@app.route("/")
+def home():
+    try:
+        return render_template("index.html")
+    except Exception as e:
+        return f"Error rendering template: {e}", 500
