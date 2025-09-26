@@ -1,7 +1,3 @@
-services:
-  - type: web
-    name: superb-bot
-    env: python
-    plan: free
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn -k eventlet -w 1 server:app"
+app = Flask(__name__, template_folder="templates")
+log_queue = queue.Queue(maxsize=1000)
+
