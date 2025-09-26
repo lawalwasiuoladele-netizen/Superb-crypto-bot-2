@@ -36,7 +36,7 @@ def index():
         for i, a in enumerate(accounts)
     ]
     running = bot_ctrl.is_running()
-    return render_template("index.html", accounts=acct_view, running=running)
+    return render_template("index.html", accounts=acct_view, running:=running)
 
 @app.route("/add_account", methods=["POST"])
 def add_account():
