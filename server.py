@@ -15,7 +15,7 @@ import time
 import os
 import queue
 from flask import Flask, render_template
-
+("index.html", accounts=acct_view, running=running)
 # ---- local imports ----
 from bot import BotController  # expects a log_queue and uses accounts.json
 
