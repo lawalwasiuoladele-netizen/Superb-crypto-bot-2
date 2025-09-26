@@ -15,7 +15,7 @@ import time
 import os
 import queue
 from flask import Flask, render_template
-("index.html", accounts=acct_view, running:=running)
+("index.html", accounts=acct_view, running==running)
 # ---- local imports ----
 from bot import BotController  # expects a log_queue and uses accounts.json
 
@@ -36,7 +36,7 @@ def index():
         for i, a in enumerate(accounts)
     ]
     running = bot_ctrl.is_running()
-    return render_template("index.html", accounts=acct_view, running:=running)
+    return render_template("index.html", accounts=acct_view, running==running)
 
 @app.route("/add_account", methods=["POST"])
 def add_account():
