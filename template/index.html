@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Superb Crypto Bot Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>
+      body { padding: 20px; }
+      .logbox {
+        height: 360px;
+        overflow: auto;
+        background: #0b1220;
+        color: #e6eef8;
+        padding: 10px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h3>Superb Crypto Bot — Dashboard</h3>
+      <p class="text-muted">
+        Add multiple Bybit accounts (API Key + Secret). Start/Stop bot. Live logs stream below.
+      </p>
+
+      <!-- Add Account Form -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <form method="post" action="/add_account" class="row g-2">
+            <div class="col-md-5">
+              <input name="key" class="form-control" placeholder="API Key" required/>
+            </div>
+            <div class="col-md-5">
+              <input name="secret" class="form-control" placeholder="API Secret" required/>
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-primary w-100" type="submit">Add Account</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Saved Accounts -->
+      <div class="mb-3">
+        <h6>Saved Accounts</h6>
+        <table class="table table-sm">
+          <thead><tr><th>#</th><th>Key (first 8 chars)</th><th>Action</th></tr></thead>
+          <tbody>
+            {% if accounts %}
+              {% for a in accounts %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ a.key }}</td>
+                <td>
+                  <form method="post" action="/remove_account" style="display:inline;">
+                    <input type="hidden" name="index" value="{{ a.index }}"/>
+                    <button class="btn btn-sm btn-danger">Remove</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="3" class="text-muted">No accounts added yet.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Bot Controls -->
+      <div class="mb-3">
+        <form method="post" action="/start" style="display:inline;">
+          <button class="btn btn-success" type="submit" {% if running %}disabled{% endif %}>Start Bot</button>
+        </form>
+        <form method="post" action="/stop" style="display:inline; margin-left:8px;">
+          <button class="btn btn-warning" type="submit" {% if not running %}disabled{% endif %}>Stop Bot</button>
+        </form>
+        <span class="ms-3">{{ 'Running' if running else 'Stopped' }}</span>
+      </div>
+
+      <hr/>
+      <h6>Live Logs</h6>
+      <div id="log" class="logbox"></div>
+    </div>
+
+    <script>
+      const evtSource = new EventSource("/stream");
+      const logBox = document.getElementById("log");
+      if (logBox) {
+        evtSource.onmessage = function(e) {
+          logBox.innerText += e.data + "\n";
+          logBox.scrollTop = logBox.scrollHeight;
+        };
+        evtSource.onerror = function(e) {
+          console.error("SSE error", e);
+        };
+      }
+    </script>
+  </body>
+</html>
