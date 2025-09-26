@@ -106,3 +106,10 @@ def home():
         return render_template("index.html")
     except Exception as e:
         return f"Error rendering template: {e}", 500
+import eventlet
+eventlet.monkey_patch()   # <-- must be the very first thing
+
+from flask import Flask, render_template, request, Response
+import queue
+import logging
+# ... rest of your imports
