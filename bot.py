@@ -19,7 +19,16 @@ RSI filter
 Web UI for account management """
 
 
-import threading import time import json import os import datetime import math import traceback from pybit.unified_trading import HTTP from flask import Flask, request, jsonify
+import threading
+import time
+import json
+import os
+import datetime
+import math
+import traceback
+
+from pybit.unified_trading import HTTP
+from flask import Flask, request, jsonify
 
 --- Config ---
 
