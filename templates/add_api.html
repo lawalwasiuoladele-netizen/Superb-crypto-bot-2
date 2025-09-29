@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add API Key</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #111; color: #0f0; text-align: center; }
+        input { padding: 10px; margin: 10px; width: 250px; border-radius: 6px; border: 1px solid #0f0; background: #222; color: #0f0; }
+        button { padding: 10px 20px; margin: 10px; border: none; border-radius: 8px; background: #0a0; color: #fff; cursor: pointer; }
+        a { color: #0ff; text-decoration: none; display: block; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <h1>➕ Add API Key</h1>
+
+    <form action="/add_api" method="post">
+        <input type="text" name="api_key" placeholder="API Key" required><br>
+        <input type="text" name="api_secret" placeholder="API Secret" required><br>
+        <button type="submit">Save</button>
+    </form>
+
+    <a href="/">⬅️ Back to Dashboard</a>
+</body>
+</html>
