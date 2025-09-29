@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🤖 Trading Bot Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #000;
+      margin: 20px;
+    }
+    h2 {
+      color: #333;
+    }
+    .section {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+    .accounts span {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 4px 8px;
+      background: #eee;
+      border-radius: 4px;
+    }
+    button {
+      padding: 6px 12px;
+      margin: 5px 3px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .start { background: #28a745; color: #fff; }
+    .stop { background: #dc3545; color: #fff; }
+    .remove { background: #ffc107; color: #000; }
+    .add { background: #007bff; color: #fff; }
+    pre {
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+      border-radius: 6px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 13px;
+    }
+  </style>
+  <script>
+    function startLogStream() {
+      const logBox = document.getElementById("logs");
+      const evtSource = new EventSource("/stream");
+      evtSource.onmessage = function(e) {
+        logBox.textContent += e.data + "\n";
+        logBox.scrollTop = logBox.scrollHeight;
+      };
+    }
+    window.onload = startLogStream;
+  </script>
+</head>
+<body>
+  <h2>🤖 Trading Bot Dashboard</h2>
+
+  <div class="section">
+    <h3>Add Account</h3>
+    <form action="/add_account" method="post">
+      <input type="text" name="key" placeholder="API Key" required>
+      <input type="text" name="secret" placeholder="Secret Key" required>
+      <button type="submit" class="add">➕ Add</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h3>Accounts</h3>
+    <div class="accounts">
+      {% for a in accounts %}
+        <span>{{ a.key }}</span>
+        <form action="/remove_account" method="post" style="display:inline;">
+          <input type="hidden" name="index" value="{{ a.index }}">
+          <button type="submit" class="remove">❌ Remove</button>
+        </form>
+        <br>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="section">
+    <form action="/start" method="post" style="display:inline;">
+      <button type="submit" class="start">▶ Start Bot</button>
+    </form>
+    <form action="/stop" method="post" style="display:inline;">
+      <button type="submit" class="stop">⏹ Stop Bot</button>
+    </form>
+    <a href="/status">📊 View Status</a>
+  </div>
+
+  <div class="section">
+    <h3>Logs</h3>
+    <pre id="logs"></pre>
+  </div>
+</body>
+</html>
