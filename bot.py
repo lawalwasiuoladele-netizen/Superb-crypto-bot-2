@@ -34,7 +34,7 @@ ALLOWED_COINS = {
 
 DAILY_TRADE_LIMIT = int(os.environ.get("DAILY_TRADE_LIMIT", "50"))
 TRADE_TIMEOUT = int(os.environ.get("TRADE_TIMEOUT", str(20*60)))
-CHECK_INTERVAL = int(os.environ.get("CHECK_INTERVAL", "10"))  # seconds
+CHECK_INTERVAL = int(os.environ.get("CHECK_INTERVAL", "60"))  # seconds
 MIN_USDT_BALANCE = float(os.environ.get("MIN_USDT_BALANCE", "3.0"))  # minimum to trade
 RATE_LIMIT_SLEEP = float(os.environ.get("RATE_LIMIT_SLEEP", "0.35"))
 MAX_RETRIES = int(os.environ.get("MAX_RETRIES", "3"))
