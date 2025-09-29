@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Trading Bot Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #0f0;
+      margin: 20px;
+    }
+    h1, h2 {
+      color: #0f0;
+    }
+    form {
+      margin-bottom: 15px;
+    }
+    input, button {
+      padding: 6px;
+      margin: 3px;
+      border-radius: 5px;
+      border: 1px solid #0f0;
+      background: #222;
+      color: #0f0;
+    }
+    input:focus {
+      outline: none;
+      border-color: #0ff;
+    }
+    button {
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0f0;
+      color: #111;
+    }
+    .account-list {
+      margin-top: 10px;
+    }
+    .account {
+      padding: 6px;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+    .log-box {
+      margin-top: 20px;
+      padding: 10px;
+      background: #000;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      height: 300px;
+      overflow-y: scroll;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 14px;
+      color: #0f0;
+    }
+    .controls {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 Trading Bot Dashboard</h1>
+
+  <h2>Add Account</h2>
+  <form method="POST" action="/add_account">
+    <input type="text" name="key" placeholder="API Key" required>
+    <input type="text" name="secret" placeholder="Secret Key" required>
+    <button type="submit">➕ Add</button>
+  </form>
+
+  <h2>Accounts</h2>
+  <div class="account-list">
+    {% if accounts %}
+      {% for acc in accounts %}
+        <div class="account">
+          {{ acc.key }}
+          <form method="POST" action="/remove_account" style="display:inline;">
+            <input type="hidden" name="index" value="{{ acc.index }}">
+            <button type="submit">❌ Remove</button>
+          </form>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No accounts added yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="controls">
+    <form method="POST" action="/start" style="display:inline;">
+      <button type="submit">▶ Start Bot</button>
+    </form>
+    <form method="POST" action="/stop" style="display:inline;">
+      <button type="submit">⏹ Stop Bot</button>
+    </form>
+    <a href="/status" target="_blank"><button type="button">📊 View Status</button></a>
+  </div>
+
+  <h2>Logs</h2>
+  <div class="log-box" id="log-box"></div>
+
+  <script>
+    // EventSource for live logs
+    const logBox = document.getElementById("log-box");
+    const evtSource = new EventSource("/stream");
+    evtSource.onmessage = function(e) {
+      logBox.textContent += e.data + "\n";
+      logBox.scrollTop = logBox.scrollHeight;
+    };
+  </script>
+</body>
+</html>
