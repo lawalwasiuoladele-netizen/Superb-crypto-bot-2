@@ -30,7 +30,9 @@ import traceback
 from pybit.unified_trading import HTTP
 from flask import Flask, request, jsonify
 
---- Config ---
+# ======================
+# Config
+# ======================
 
 DATA_DIR = os.environ.get("DATA_DIR") or ("/data" if os.path.exists("/data") else None) if DATA_DIR: os.makedirs(DATA_DIR, exist_ok=True) DEFAULT_ACCOUNTS_FILE = os.path.join(DATA_DIR, "accounts.json") else: DEFAULT_ACCOUNTS_FILE = "accounts.json"
 
