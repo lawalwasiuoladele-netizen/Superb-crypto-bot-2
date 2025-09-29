@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🤖 Trading Bot Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: #0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #0f0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #0f0;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #222;
+        }
+        tr:nth-child(even) {
+            background-color: #1a1a1a;
+        }
+        input[type="text"], input[type="password"] {
+            padding: 6px;
+            margin: 4px;
+            width: 200px;
+        }
+        button {
+            background-color: #0f0;
+            border: none;
+            padding: 8px 12px;
+            margin: 4px;
+            cursor: pointer;
+            color: #111;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #1aff1a;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #222;
+            border: 1px solid #0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Trading Bot Dashboard</h1>
+
+    <h2>Accounts</h2>
+    <table>
+        <tr>
+            <th>API Key</th>
+            <th>Balance</th>
+            <th>Current Trade</th>
+            <th>Action</th>
+        </tr>
+        {% for acct in accounts %}
+        <tr>
+            <td>{{ acct.key }}</td>
+            <td>{{ acct.balance }}</td>
+            <td>{{ acct.trade }}</td>
+            <td>
+                <form action="{{ url_for('remove_account') }}" method="post" style="display:inline;">
+                    <input type="hidden" name="index" value="{{ acct.index }}">
+                    <button type="submit">Remove</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Add Account</h2>
+    <form action="{{ url_for('add_account') }}" method="post">
+        <input type="text" name="key" placeholder="API Key" required>
+        <input type="password" name="secret" placeholder="Secret Key" required>
+        <button type="submit">Add</button>
+    </form>
+
+    <h2>Controls</h2>
+    {% if running %}
+        <form action="{{ url_for('stop') }}" method="post">
+            <button type="submit">🛑 Stop Bot</button>
+        </form>
+    {% else %}
+        <form action="{{ url_for('start') }}" method="post">
+            <button type="submit">▶️ Start Bot</button>
+        </form>
+    {% endif %}
+
+    <div class="status">
+        <h3>📡 Live Logs</h3>
+        <pre id="log"></pre>
+    </div>
+
+    <script>
+        var logElem = document.getElementById("log");
+        var evtSource = new EventSource("{{ url_for('stream') }}");
+        evtSource.onmessage = function(e) {
+            logElem.textContent += e.data + "\n";
+            logElem.scrollTop = logElem.scrollHeight;
+        }
+    </script>
+</body>
+</html>
