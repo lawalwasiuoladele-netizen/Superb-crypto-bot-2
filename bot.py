@@ -11,36 +11,16 @@ from pybit.unified_trading import HTTP
 
 # ---- Allowed trading pairs (only coins under $1 or close to it) ----
 ALLOWED_COINS = [
-    "XRPUSDT",
-    "DOGEUSDT",
-    "TRXUSDT",
-    "ADAUSDT",
-    "MATICUSDT",
-    "STXUSDT",
-    "VETUSDT",
-    "XLMUSDT",
-    "SHIBUSDT",
-    "ALGOUSDT",
-    "IOTAUSDT",
-    "CHZUSDT",
-    "SANDUSDT",
-    "ZILUSDT",
-    "EOSUSDT",
-    "FLOWUSDT",
-    "FTMUSDT",
-    "ANKRUSDT",
-    "GRTUSDT",
-    "ENJUSDT",
-    "MANAUSDT",
-    "SUIUSDT",
-    "CELOUSDT",
-    "ONEUSDT",
-    "NEARUSDT",
-    "KLAYUSDT",
-    "ATOMUSDT",
-    "ONTUSDT",
-    "ICPUSDT",
-    "QTUMUSDT"
+    "XRPUSDT", "TRXUSDT", "XLMUSDT", "XVGUSDT", "CKBUSDT", "VETUSDT",
+    "IOTAUSDT", "ZILUSDT", "CELRUSDT", "HOTUSDT", "SCUSDT", "DENTUSDT",
+    "KEYUSDT", "ANKRUSDT", "STMXUSDT", "ONEUSDT", "WINUSDT", "TROYUSDT",
+    "CHZUSDT", "DGBUSDT", "FUNUSDT", "CTXCUSDT", "PONDUSDT", "OGNUSDT",
+    "BTTUSDT", "NKNUSDT", "REEFUSDT", "SXPUSDT", "COTIUSDT", "MDTUSDT",
+    "SLPUSDT", "SUNUSDT", "HIVEUSDT", "OCEANUSDT", "PERLUSDT", "UNFIUSDT",
+    "BELUSDT", "CTSIUSDT", "DODOUSDT", "FLMUSDT", "GALAUSDT", "ARPAUSDT",
+    "TLMUSDT", "ALICEUSDT", "DARUSDT", "ACAUSDT", "ACHUSDT", "HOOKUSDT",
+    "HIGHUSDT", "JOEUSDT", "MAGICUSDT", "PHBUSDT", "IDEXUSDT", "MULTIUSDT",
+    "LOKAUSDT", "C98USDT", "FETUSDT", "BAKEUSDT", "RIFUSDT", "FORTHUSDT"
 ]
 # ---- Risk Parameters (configurable) ----
 RISK_RULES = {
@@ -200,7 +180,7 @@ class BotController:
             rsi = self.compute_rsi(closes, 14)
             if rsi is None:
                 return False
-            rsi_signal = (rsi < 30) or (rsi > 70)
+            rsi_signal = (rsi < 35) or (rsi > 65)
 
             if volumes and len(volumes) >= 11:
                 avg_vol = sum(volumes[-11:-1]) / 10
