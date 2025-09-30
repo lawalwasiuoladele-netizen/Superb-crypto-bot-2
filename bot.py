@@ -19,9 +19,29 @@ ALLOWED_COINS = [
     "STXUSDT",
     "VETUSDT",
     "XLMUSDT",
-    "SHIBUSDT"
+    "SHIBUSDT",
+    "ALGOUSDT",
+    "IOTAUSDT",
+    "CHZUSDT",
+    "SANDUSDT",
+    "ZILUSDT",
+    "EOSUSDT",
+    "FLOWUSDT",
+    "FTMUSDT",
+    "ANKRUSDT",
+    "GRTUSDT",
+    "ENJUSDT",
+    "MANAUSDT",
+    "SUIUSDT",
+    "CELOUSDT",
+    "ONEUSDT",
+    "NEARUSDT",
+    "KLAYUSDT",
+    "ATOMUSDT",
+    "ONTUSDT",
+    "ICPUSDT",
+    "QTUMUSDT"
 ]
-
 # ---- Risk Parameters (configurable) ----
 RISK_RULES = {
     "stop_loss": -5,        # -5% SL
