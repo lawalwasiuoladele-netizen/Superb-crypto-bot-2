@@ -205,7 +205,7 @@ class BotController:
             if volumes and len(volumes) >= 11:
                 avg_vol = sum(volumes[-11:-1]) / 10
                 last_vol = volumes[-1]
-                vol_spike = last_vol > 1.5 * avg_vol
+                vol_spike = last_vol > 1.2 * avg_vol
             else:
                 vol_spike = True
 
