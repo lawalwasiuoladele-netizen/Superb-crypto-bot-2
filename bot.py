@@ -68,7 +68,25 @@ class BotController:
         self._running = False
         self._stop_event = threading.Event()
         self._file_lock = threading.Lock()
+class BotController:
+    def __init__(self):
+        self._running = False   # Internal flag to track bot status
 
+    def start(self):
+        if not self._running:
+            self._running = True
+            print("Bot started")
+            # 👉 put your bot start logic here
+
+    def stop(self):
+        if self._running:
+            self._running = False
+            print("Bot stopped")
+            # 👉 put your bot stop logic here
+
+    def is_running(self):
+        """Return True if bot is running, False otherwise."""
+        return self._running
         # Ensure files exist
         if not os.path.exists(ACCOUNTS_FILE):
             with open(ACCOUNTS_FILE, "w") as f:
