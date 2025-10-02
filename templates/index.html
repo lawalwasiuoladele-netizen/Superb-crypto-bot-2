@@ -1,0 +1,364 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Superb Bot Dashboard</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root{--muted:#666;--card:#fff;--bg:#f4f6f8;--accent:#0366d6}
+      body{font-family:Inter,Arial,Helvetica,sans-serif;margin:16px;background:var(--bg);color:#111}
+      .wrap{max-width:1100px;margin:0 auto}
+      header{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+      h1{font-size:20px;margin:0}
+      .controls{display:flex;gap:8px;align-items:center}
+      .card{background:var(--card);padding:12px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:12px}
+      input, button, select{font-size:14px}
+      input{padding:8px;border:1px solid #ddd;border-radius:6px}
+      button{padding:8px 12px;border-radius:6px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+      button.ghost{background:#eee;color:#111}
+      .cols{display:grid;grid-template-columns:1fr 420px;gap:12px}
+      table{width:100%;border-collapse:collapse}
+      th,td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:13px}
+      th{background:#fafafa;font-weight:600}
+      #logs{background:#0b0b0b;color:#b7f2b7;height:320px;overflow:auto;padding:10px;border-radius:6px;font-family:monospace;font-size:12px}
+      .status{padding:6px 10px;border-radius:999px;font-weight:600}
+      .status.running{background:#e6ffef;color:#055a2c}
+      .status.stopped{background:#fff3f3;color:#8b1d0c}
+      .small{font-size:12px;color:var(--muted)}
+      .row{display:flex;gap:8px;align-items:center}
+      .muted{color:var(--muted)}
+      .actions button{margin-right:6px}
+      .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#f1f8ff;color:#044b9a;font-weight:600;font-size:12px}
+      @media(max-width:900px){ .cols{grid-template-columns:1fr} }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>🚀 Superb Crypto Bot — Dashboard</h1>
+        <div style="margin-left:auto" id="topStatus"></div>
+      </header>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <strong>Controls</strong>
+            <div class="small muted">Add accounts, start/stop the bot, see live logs & trades.</div>
+          </div>
+
+          <div class="controls">
+            <div id="runningIndicator" class="status stopped">stopped</div>
+            <button id="startBtn">Start</button>
+            <button id="stopBtn" class="ghost">Stop</button>
+            <button id="refreshBtn" class="ghost">Refresh</button>
+          </div>
+        </div>
+
+        <hr style="margin:10px 0">
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input id="name" placeholder="Account name (e.g. MyBybitTest)">
+          <input id="key" placeholder="API Key">
+          <input id="secret" placeholder="API Secret">
+          <button id="addAccountBtn">Add account</button>
+          <div class="small muted" style="margin-left:8px">Accounts are saved to <code>accounts.json</code>.</div>
+        </div>
+      </div>
+
+      <div class="cols">
+        <div>
+          <div class="card" style="margin-bottom:10px">
+            <strong>Accounts</strong> <span class="small muted"> (click Remove to delete)</span>
+            <table id="accountsTable" style="margin-top:8px">
+              <thead><tr><th>#</th><th>Name</th><th>Key</th><th>Balance</th><th>Pos</th><th>Trade</th><th>Actions</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <strong>Trades (recent)</strong>
+            <div style="margin-top:8px;overflow:auto;max-height:300px">
+              <table id="tradesTable">
+                <thead><tr><th>Acct</th><th>Symbol</th><th>Entry</th><th>Exit</th><th>Pct</th><th>Entry</th><th>Exit Time</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card" style="margin-bottom:10px">
+            <strong>Summary</strong>
+            <div id="summary">
+              <div class="small muted">loading…</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <strong>Live Logs</strong>
+            <div id="logs"></div>
+            <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+              <button id="clearLogs" class="ghost">Clear</button>
+              <button id="downloadLogs" class="ghost">Download</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <script>
+      const API = {
+        accounts: "/accounts_data",
+        add_account: "/add_account",
+        remove_account: "/remove_account",
+        start: "/start",
+        stop: "/stop",
+        trades: "/trades_data",
+        summary: "/summary_data",
+        stream: "/stream",
+        status: "/status"
+      };
+
+      // UI elements
+      const accountsTbody = document.querySelector("#accountsTable tbody");
+      const tradesTbody = document.querySelector("#tradesTable tbody");
+      const summaryDiv = document.getElementById("summary");
+      const logsDiv = document.getElementById("logs");
+      const runningIndicator = document.getElementById("runningIndicator");
+      const startBtn = document.getElementById("startBtn");
+      const stopBtn = document.getElementById("stopBtn");
+      const refreshBtn = document.getElementById("refreshBtn");
+
+      // Basic helpers
+      function fmtNum(n, d=2){ return (typeof n === "number") ? n.toFixed(d) : n }
+      function safe(text){ return String(text === null || text === undefined ? "" : text) }
+
+      async function addAccount(){
+        const name = document.getElementById("name").value.trim();
+        const key = document.getElementById("key").value.trim();
+        const secret = document.getElementById("secret").value.trim();
+        if(!name || !key || !secret){
+          showStatus("⚠️ Fill all fields", true);
+          return;
+        }
+        try {
+          // server accepts JSON or form; we send JSON
+          await fetch(API.add_account, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({name, key, secret})
+          });
+          document.getElementById("name").value = "";
+          document.getElementById("key").value = "";
+          document.getElementById("secret").value = "";
+          showStatus("✅ Account added");
+          await loadAccounts();
+        } catch(err){
+          showStatus("❌ Add failed: "+err.message, true);
+        }
+      }
+
+      async function removeAccount(idx){
+        if(!confirm("Remove account at index "+idx+"?")) return;
+        try {
+          await fetch(API.remove_account, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({index: idx})
+          });
+          showStatus("✅ Removed account");
+          await loadAccounts();
+        } catch(err){
+          showStatus("❌ Remove failed: "+err.message, true);
+        }
+      }
+
+      async function loadAccounts(){
+        try {
+          const res = await fetch(API.accounts);
+          const list = await res.json();
+          accountsTbody.innerHTML = "";
+          list.forEach((acc, i) => {
+            // acc: { index, key, balance, position, monitoring, trade }
+            const tr = document.createElement("tr");
+
+            const tradeInfo = acc.trade ? `<div style="font-size:12px">
+                <strong>${acc.trade.symbol}</strong> @ ${fmtNum(acc.trade.buy_price,6)} 
+                <div class="small muted">pnl: ${fmtNum(acc.trade.pnl||0,2)}%</div>
+              </div>` : "";
+
+            tr.innerHTML = `
+              <td>${(i+1)}</td>
+              <td>${safe(acc.name || ("Account "+(i+1)))}</td>
+              <td style="font-family:monospace">${safe(acc.key || "").slice(0,6)}****</td>
+              <td>${fmtNum(acc.balance||0,4)}</td>
+              <td>${safe(acc.position||"closed")}</td>
+              <td>${tradeInfo}</td>
+              <td class="actions">
+                <button class="ghost" data-idx="${i}" onclick="removeAccount(${i})">Remove</button>
+              </td>
+            `;
+            accountsTbody.appendChild(tr);
+          });
+        } catch(err){
+          accountsTbody.innerHTML = "<tr><td colspan='7'>Failed to load accounts: "+err.message+"</td></tr>";
+        }
+      }
+
+      async function loadTrades(){
+        try {
+          const res = await fetch(API.trades);
+          const list = await res.json();
+          tradesTbody.innerHTML = "";
+          // newest first if list is long
+          list.slice().reverse().slice(0, 200).forEach(t => {
+            const entryTime = t.entry_time ? new Date(t.entry_time).toLocaleString() : (t.get ? t.get("entry_time") : "");
+            const exitTime = t.exit_time ? new Date(t.exit_time).toLocaleString() : "";
+            const pnl = (t.profit_pct !== undefined) ? t.profit_pct : (t.pnl_pct !== undefined ? t.pnl_pct : t.pct || 0);
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${safe(t.account)}</td>
+                            <td>${safe(t.symbol)}</td>
+                            <td>${fmtNum(t.entry_price||0,6)}</td>
+                            <td>${fmtNum(t.exit_price|| (t.exit_price===0?0:"-"),6)}</td>
+                            <td>${fmtNum(pnl,2)}</td>
+                            <td>${safe(entryTime)}</td>
+                            <td>${safe(exitTime)}</td>`;
+            tradesTbody.appendChild(tr);
+          });
+        } catch(err){
+          tradesTbody.innerHTML = "<tr><td colspan='7'>Failed to load trades: "+err.message+"</td></tr>";
+        }
+      }
+
+      async function loadSummary(){
+        try {
+          const res = await fetch(API.summary);
+          const s = await res.json();
+          summaryDiv.innerHTML = `
+            <div style="margin-bottom:6px"><strong>Total trades:</strong> ${s.total_trades || 0}</div>
+            <div style="margin-bottom:6px"><strong>Wins:</strong> ${s.wins || 0} &nbsp; <strong>Losses:</strong> ${s.losses || 0}</div>
+            <div style="margin-bottom:6px"><strong>Total PnL:</strong> ${fmtNum(s.total_pnl || 0,2)}%</div>
+            <div style="margin-top:8px"><strong>Per account:</strong></div>
+            <div style="margin-top:6px">
+              ${Object.entries(s.accounts || {}).map(([k,v]) => `<div style="margin-bottom:6px"><strong>${k}:</strong> trades ${v.trades}, wins ${v.wins}, pnl ${fmtNum(v.total_pnl||0,2)}</div>`).join("")}
+            </div>
+          `;
+        } catch(err){
+          summaryDiv.innerHTML = "<div class='small muted'>Failed to load summary: "+err.message+"</div>";
+        }
+      }
+
+      // Start/stop
+      async function startBot(){
+        try {
+          startBtn.disabled = true;
+          const res = await fetch(API.start, {method:"POST"});
+          // Some server implementations redirect; handle both JSON + redirect
+          let data = {};
+          try { data = await res.json(); } catch(e){}
+          showStatus("✅ Bot started: " + (data.status || JSON.stringify(data)));
+          await updateStatus();
+        } catch(err){
+          showStatus("❌ Start failed: "+err.message, true);
+        } finally { startBtn.disabled = false; }
+      }
+
+      async function stopBot(){
+        try {
+          stopBtn.disabled = true;
+          const res = await fetch(API.stop, {method:"POST"});
+          let data = {};
+          try { data = await res.json(); } catch(e){}
+          showStatus("🛑 Bot stopping: " + (data.status || JSON.stringify(data)));
+          await updateStatus();
+        } catch(err){
+          showStatus("❌ Stop failed: "+err.message, true);
+        } finally { stopBtn.disabled = false; }
+      }
+
+      // Status indicator
+      async function updateStatus(){
+        try {
+          const res = await fetch(API.status);
+          const s = await res.json();
+          if(s.running){
+            runningIndicator.className = "status running";
+            runningIndicator.textContent = "running";
+          } else {
+            runningIndicator.className = "status stopped";
+            runningIndicator.textContent = "stopped";
+          }
+          document.getElementById("topStatus").textContent = `threads: ${s.threads || 0}`;
+        } catch(e){
+          // keep previous
+        }
+      }
+
+      // Logs - SSE
+      let es;
+      function startLogs(){
+        try {
+          if(es && es.readyState !== EventSource.CLOSED) es.close();
+          es = new EventSource(API.stream);
+          es.onmessage = (e) => {
+            const line = e.data || "";
+            const el = document.createElement("div");
+            el.textContent = line;
+            logsDiv.appendChild(el);
+            // keep scroll at bottom
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+            // keep logs memory limited
+            if(logsDiv.children.length > 1500) logsDiv.removeChild(logsDiv.firstChild);
+          };
+          es.onerror = (err) => {
+            const el = document.createElement("div");
+            el.textContent = "⚠️ Log stream error or closed, attempting reconnect...";
+            el.style.color = "#ffcc00";
+            logsDiv.appendChild(el);
+            if(es) es.close();
+            // try reconnect in 2s
+            setTimeout(startLogs, 2000);
+          };
+        } catch(err){
+          console.warn("SSE not supported", err);
+        }
+      }
+
+      document.getElementById("addAccountBtn").addEventListener("click", addAccount);
+      startBtn.addEventListener("click", startBot);
+      stopBtn.addEventListener("click", stopBot);
+      refreshBtn.addEventListener("click", async () => { await loadAccounts(); await loadTrades(); await loadSummary(); await updateStatus(); });
+
+      document.getElementById("clearLogs").addEventListener("click", () => { logsDiv.innerHTML = ""; });
+      document.getElementById("downloadLogs").addEventListener("click", () => {
+        const text = Array.from(logsDiv.children).map(n => n.textContent).join("\n");
+        const blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "superb-bot-logs.txt";
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // periodic refresh
+      async function tick(){
+        await loadAccounts();
+        await loadTrades();
+        await loadSummary();
+        await updateStatus();
+      }
+
+      // init
+      (async function init(){
+        startLogs();
+        await tick();
+        // poll every 5s
+        setInterval(tick, 5000);
+      })();
+
+      // expose removeAccount to inline onclick in table (for older browsers)
+      window.removeAccount = removeAccount;
+    </script>
+  </body>
+</html>
