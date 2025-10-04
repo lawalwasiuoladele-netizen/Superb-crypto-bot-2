@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Superb Bot Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+      input { margin: 5px; padding: 5px; width: 250px; }
+      button { margin: 5px; padding: 7px 15px; cursor: pointer; }
+      #logs { background: #111; color: #0f0; height: 300px; overflow-y: scroll; padding: 10px; font-family: monospace; }
+      #status { margin: 10px 0; font-weight: bold; }
+      .account-row { padding: 6px; border-bottom: 1px solid #ddd; background: #fff; margin-bottom: 6px; }
+      .debug-output { white-space: pre-wrap; font-family: monospace; background: #eee; padding: 8px; margin-top: 6px; display:none; }
+    </style>
+  </head>
+  <body>
+    <h2>🚀 Superb Crypto Bot</h2>
+
+    <div id="accounts-container"></div>
+
+    <button onclick="start()">Start</button>
+    <button onclick="stop()">Stop</button>
+    <div id="status"></div>
+
+    <h3>Logs</h3>
+    <div id="logs">(logs will appear here)</div>
+
+    <script>
+      const logBox = document.getElementById('logs');
+      function appendLog(text){ logBox.innerText += text + "\n"; logBox.scrollTop = logBox.scrollHeight; }
+
+      // SSE
+      let evt = new EventSource('/logs');
+      evt.onmessage = (e) => { appendLog(e.data); };
+      evt.onerror = (e) => { appendLog('⚠️ Log stream error or closed, attempting reconnect...'); evt.close(); setTimeout(()=>{ evt = new EventSource('/logs'); }, 2000); };
+
+      async function refreshAccounts(){
+        const res = await fetch('/accounts_data');
+        const data = await res.json();
+        const container = document.getElementById('accounts-container');
+        container.innerHTML = '';
+        data.forEach(acc => {
+          const div = document.createElement('div');
+          div.className = 'account-row';
+          div.innerHTML = `<strong>${acc.name}</strong> &nbsp; ${acc.key} &nbsp; Balance: ${acc.balance} &nbsp; <button onclick="debugAccount(${acc.index}, this)">Debug</button> <span style='color:red'>${acc.last_error?acc.last_error:''}</span><div class='debug-output' id='debug-${acc.index}'></div>`;
+          container.appendChild(div);
+        });
+      }
+
+      async function debugAccount(idx, btn){
+        const output = document.getElementById('debug-' + idx);
+        output.style.display = 'block';
+        output.innerText = 'Fetching debug info...';
+        try{
+          const res = await fetch(`/account_debug/${idx}`);
+          const json = await res.json();
+          output.innerText = JSON.stringify(json, null, 2);
+        }catch(e){
+          output.innerText = 'Debug fetch failed: ' + e;
+        }
+      }
+
+      async function start(){
+        const accs = [];
+        // if there are inputs present, collect them (keeps backward compatibility minimal)
+        const nameInput = document.getElementById('name1');
+        const keyInput = document.getElementById('key1');
+        const secretInput = document.getElementById('secret1');
+        if(nameInput && keyInput && secretInput && nameInput.value && keyInput.value && secretInput.value){
+          accs.push({name: nameInput.value, key: keyInput.value, secret: secretInput.value});
+        }
+        const body = accs.length ? {accounts: accs} : null;
+        const res = await fetch('/start', {method:'POST', headers: {'Content-Type':'application/json'}, body: body?JSON.stringify(body):null});
+        const json = await res.json();
+        document.getElementById('status').innerText = '✅ ' + (json.status || 'started') + (json.accounts ? ' for: '+json.accounts.join(', ') : '');
+        setTimeout(refreshAccounts, 1000);
+      }
+
+      async function stop(){
+        await fetch('/stop', {method:'POST'});
+        document.getElementById('status').innerText = '🛑 Bot stopping...';
+      }
+
+      // initial load
+      refreshAccounts();
+      setInterval(refreshAccounts, 15000);
+    </script>
+  </body>
+</html>
