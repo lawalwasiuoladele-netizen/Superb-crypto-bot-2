@@ -3,7 +3,7 @@ Superb Crypto Bot — Full patched bot.py
 
 Features:
 - is_running()
-- TP timeline: TP1 (0-10m -> +7%), TP2 (10-18m -> +4%), TP3 (18-23m -> +1%)
+- TP timeline: TP1 (0-10m -> +1%), TP2 (10-18m -> +0.7%), TP3 (18-23m -> +0.4%)
 - Stop-loss: -3%
 - Force-exit after 23 minutes
 - Elapsed time tracking (Xm Ys) recorded in trades.json and logs
