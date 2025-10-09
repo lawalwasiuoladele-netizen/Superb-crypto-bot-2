@@ -37,8 +37,8 @@ ALLOWED_COINS = [
 
 RISK_RULES = {
     "stop_loss": -3.0,    # -3% stop loss
-    "tp1": (600, 7.0),    # up to 10 minutes -> 7%
-    "tp2": (1080, 4.0),   # up to 18 minutes -> 4%
+    "tp1": (600, 3.0),    # up to 10 minutes -> 3%
+    "tp2": (1080, 2.0),   # up to 18 minutes -> 2%
     "tp3": (1380, 1.0),   # up to 23 minutes -> 1%
     "max_hold": 1380,     # force exit at 23 minutes
     "exit_on_any_positive": False
