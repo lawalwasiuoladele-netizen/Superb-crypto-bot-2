@@ -4,7 +4,7 @@ Superb Crypto Bot — Full patched bot.py
 Features:
 - is_running()
 - TP timeline: TP1 (0-10m -> +1%), TP2 (10-18m -> +0.7%), TP3 (18-23m -> +0.4%)
-- Stop-loss: -3%
+- Stop-loss: -1%
 - Force-exit after 23 minutes
 - Elapsed time tracking (Xm Ys) recorded in trades.json and logs
 - Minimum trade notional enforced (TRADE_SETTINGS['min_trade_amount'] = 5.0)
@@ -36,7 +36,7 @@ ALLOWED_COINS = [
 ]
 
 RISK_RULES = {
-    "stop_loss": -3.0,    # -3% stop loss
+    "stop_loss": -1.0,    # -1% stop loss
     "tp1": (600, 1.0),    # up to 10 minutes -> 1%
     "tp2": (1080, 0.7),   # up to 18 minutes -> 0.7%
     "tp3": (1380, 0.4),   # up to 23 minutes -> 0.4%
