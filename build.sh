@@ -1,4 +1,4 @@
-from bot_fib_scoring import BotController
+from bot import BotController
 
 # Global BotController instance
 # This allows services and the server to share the same bot state
