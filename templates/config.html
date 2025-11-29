@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block content %}
+{% set active = "config" %}
+{% set title = "Configuration" %}
+
+<div class="mb-8 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">Bot Configuration</h1>
+    <div class="space-x-2">
+        <button onclick="resetConfig()" class="px-4 py-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+            Reset to Defaults
+        </button>
+        <button onclick="saveConfig()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Save Changes
+        </button>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <form id="configForm" class="space-y-6">
+        <!-- Trading Settings -->
+        <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Trading Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Strategy</label>
+                    <select name="strategy" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                        <option value="scalping" {% if config.strategy == 'scalping' %}selected{% endif %}>Scalping (Fib + RSI)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Trade Allocation (%)</label>
+                    <input type="number" name="tradeAllocation" value="{{ config.tradeAllocation }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Stop Loss (%)</label>
+                    <input type="number" step="0.1" name="stopLoss" value="{{ config.stopLoss }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Max Hold Time (seconds)</label>
+                    <input type="number" name="maxHold" value="{{ config.maxHold }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-gray-200">
+
+        <!-- Indicator Settings -->
+        <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Indicator Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">RSI Period</label>
+                    <input type="number" name="rsiPeriod" value="{{ config.rsiPeriod }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">RSI Oversold</label>
+                    <input type="number" name="rsiOversold" value="{{ config.rsiOversold }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">RSI Overbought</label>
+                    <input type="number" name="rsiOverbought" value="{{ config.rsiOverbought }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-gray-200">
+
+        <!-- System Settings -->
+        <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">System Settings</h3>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center">
+                    <input type="checkbox" name="dryRun" {% if config.dryRun %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label class="ml-2 block text-sm text-gray-900">Dry Run (Paper Trading)</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" name="testOnTestnet" {% if config.testOnTestnet %}checked{% endif %} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label class="ml-2 block text-sm text-gray-900">Use Testnet</label>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    async function saveConfig() {
+        const form = document.getElementById('configForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Handle checkboxes
+        data.dryRun = form.querySelector('[name="dryRun"]').checked;
+        data.testOnTestnet = form.querySelector('[name="testOnTestnet"]').checked;
+        
+        // Convert numbers
+        ['tradeAllocation', 'stopLoss', 'maxHold', 'rsiPeriod', 'rsiOversold', 'rsiOverbought'].forEach(k => {
+            if (data[k]) data[k] = Number(data[k]);
+        });
+
+        try {
+            const res = await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.status === 'saved') {
+                alert('Configuration saved successfully!');
+            } else {
+                alert('Error saving configuration');
+            }
+        } catch (e) {
+            alert('Failed to save configuration');
+        }
+    }
+
+    async function resetConfig() {
+        if (!confirm('Reset all settings to defaults?')) return;
+        try {
+            const res = await fetch('/api/config/reset', { method: 'POST' });
+            const result = await res.json();
+            if (result.status === 'reset') {
+                window.location.reload();
+            }
+        } catch (e) {
+            alert('Failed to reset configuration');
+        }
+    }
+</script>
+{% endblock %}
