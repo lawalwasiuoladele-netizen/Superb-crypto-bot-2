@@ -1,0 +1,16 @@
+{
+  "exchange": "Bybit",
+  "strategy": "scalping",
+  "stopLoss": -1.0,
+  "maxHold": 1800,
+  "rsiPeriod": 14,
+  "rsiOversold": 35,
+  "rsiOverbought": 65,
+  "momentumScale": 1.0,
+  "tradeAllocation": 100,
+  "minTradeAmount": 5.0,
+  "scanInterval": 10,
+  "useMarketOrder": true,
+  "testOnTestnet": false,
+  "dryRun": false 
+}
