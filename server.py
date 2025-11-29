@@ -19,8 +19,8 @@ import bot
 from pybit.unified_trading import HTTP
 
 # Files
-ACCOUNTS_FILE = "accounts.json"
-TRADES_FILE = "trades.json"
+ACCOUNTS_FILE = "var/tmp/accounts.json"
+TRADES_FILE = "var/tmp/trades.json"
 
 # App
 app = Flask(__name__, template_folder="templates")
